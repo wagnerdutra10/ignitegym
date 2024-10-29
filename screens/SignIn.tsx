@@ -13,11 +13,42 @@ import { Input } from '@/components/Input';
 import { Button } from '@/components/Button';
 import { Platform } from 'react-native';
 import { router } from 'expo-router';
+import { Controller, useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
+import { useSession } from '@/context/AuthContext';
+
+type FormDataProps = {
+  email: string;
+  password: string;
+};
+
+const signInSchema = yup.object({
+  email: yup.string().required('Informe o email.').email('E-mail inválido.'),
+  password: yup
+    .string()
+    .required('Informe a senha.')
+    .min(6, 'A senha deve conter pelo menos 6 dígitos')
+});
 
 export function SignIn() {
+  const {
+    control,
+    handleSubmit,
+    formState: { errors }
+  } = useForm<FormDataProps>({ resolver: yupResolver(signInSchema) });
+  const { signIn } = useSession();
+
+  function handleSignIn({ email, password }: FormDataProps) {
+    console.log({ email, password });
+    signIn(email, password);
+  }
+
   function handleNewAccount() {
     router.navigate('/sign-up');
   }
+
+  console.log({ errors });
 
   return (
     <KeyboardAvoidingView
@@ -47,13 +78,34 @@ export function SignIn() {
             </Center>
             <Center gap="$2">
               <Heading color="$gray100">Acesse a conta</Heading>
-              <Input
-                placeholder="E-mail"
-                keyboardType="email-address"
-                autoCapitalize="none"
+              <Controller
+                control={control}
+                name="email"
+                render={({ field: { onChange, value } }) => (
+                  <Input
+                    placeholder="E-mail"
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    onChangeText={onChange}
+                    value={value}
+                    errorMessage={errors.email?.message}
+                  />
+                )}
               />
-              <Input placeholder="Senha" secureTextEntry />
-              <Button title="Acessar" />
+              <Controller
+                control={control}
+                name="password"
+                render={({ field: { onChange, value } }) => (
+                  <Input
+                    placeholder="Senha"
+                    secureTextEntry
+                    onChangeText={onChange}
+                    value={value}
+                    errorMessage={errors.password?.message}
+                  />
+                )}
+              />
+              <Button title="Acessar" onPress={handleSubmit(handleSignIn)} />
             </Center>
             <Center flex={1} justifyContent="flex-end" mt="$4">
               <Text color="$gray100" fontSize="$sm" mb="$3" fontFamily="$body">

@@ -5,6 +5,7 @@ import { Box, GluestackUIProvider, StatusBar } from '@gluestack-ui/themed';
 import { config, gluestackUIConfig } from '@/config/gluestack-ui.config';
 import { Loading } from '@/components/Loading';
 import { DefaultTheme } from '@react-navigation/native';
+import { SessionProvider } from '@/context/AuthContext';
 
 export default function RootLayout() {
   const [loaded, error] = useFonts({ Roboto_400Regular, Roboto_700Bold });
@@ -18,11 +19,13 @@ export default function RootLayout() {
           translucent
           backgroundColor="transparent"
         />
-        {loaded ? (
-          <Stack screenOptions={{ headerShown: false }} />
-        ) : (
-          <Loading />
-        )}
+        <SessionProvider>
+          {loaded ? (
+            <Stack screenOptions={{ headerShown: false }} />
+          ) : (
+            <Loading />
+          )}
+        </SessionProvider>
       </GluestackUIProvider>
     </Box>
   );

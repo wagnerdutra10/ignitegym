@@ -20,7 +20,7 @@ export default function AppLayout() {
   }, []);
 
   // if (isLoading) {
-  //   return <Redirect href="/sign-in" />;
+  // return <Redirect href="/sign-in" />;
   // }
 
   return (
