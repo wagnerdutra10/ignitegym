@@ -18,10 +18,11 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { api } from '@/services/api';
 import axios from 'axios';
-import { AppError } from '@/utils/appError';
 import { useToast } from '@gluestack-ui/themed';
 import { ToastMessage } from '@/components/ToastMessage';
 import { useSession } from '@/context/AuthContext';
+import { AppError } from '@/utils/AppError';
+import { useState } from 'react';
 
 type FormDataProps = {
   name: string;
@@ -49,12 +50,17 @@ export function SignUp() {
     handleSubmit,
     formState: { errors }
   } = useForm<FormDataProps>({ resolver: yupResolver(signUpSchema) });
+  const [isLoading, setIsLoading] = useState(false);
   const toast = useToast();
+  const { signIn } = useSession();
 
   async function handleSignUp({ name, email, password }: FormDataProps) {
     try {
-      const response = await api.post('/users', { name, email, password });
+      setIsLoading(true);
+      await api.post('/users', { name, email, password });
+      await signIn(email, password);
     } catch (error) {
+      setIsLoading(false);
       const isAppError = error instanceof AppError;
       const title = isAppError
         ? error.message
@@ -161,6 +167,7 @@ export function SignUp() {
               <Button
                 title="Criar e acessar"
                 onPress={handleSubmit(handleSignUp)}
+                isLoading={isLoading}
               />
             </Center>
             <Button

@@ -1,27 +1,23 @@
 import { FontAwesome } from '@expo/vector-icons';
-import { Redirect, router, Stack, Tabs } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { Redirect, Tabs } from 'expo-router';
 import HomeSvg from '@/assets/images/home.svg';
 import HistorySvg from '@/assets/images/history.svg';
 import ProfileSvg from '@/assets/images/profile.svg';
 import { gluestackUIConfig } from '@/config/gluestack-ui.config';
-import { Platform } from 'react-native';
-
+import { useSession } from '@/context/AuthContext';
+import { Loading } from '@/components/Loading';
 export default function AppLayout() {
   const { tokens } = gluestackUIConfig;
   const iconSize = tokens.space['6'];
-  // const [isLoading, setIsLoading] = useState(false);
+  const { user, isLoading } = useSession();
 
-  useEffect(() => {
-    setTimeout(() => {
-      // setIsLoading(true);
-      router.navigate('/sign-in');
-    }, 0);
-  }, []);
+  if (isLoading) {
+    return <Loading />;
+  }
 
-  // if (isLoading) {
-  // return <Redirect href="/sign-in" />;
-  // }
+  if (!user.id) {
+    return <Redirect href="/sign-in" />;
+  }
 
   return (
     <Tabs

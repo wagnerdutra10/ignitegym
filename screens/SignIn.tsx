@@ -5,6 +5,7 @@ import {
   KeyboardAvoidingView,
   ScrollView,
   Text,
+  useToast,
   VStack
 } from '@gluestack-ui/themed';
 import BackgroundImage from '@/assets/images/background.png';
@@ -17,6 +18,9 @@ import { Controller, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { useSession } from '@/context/AuthContext';
+import { AppError } from '@/utils/AppError';
+import { ToastMessage } from '@/components/ToastMessage';
+import { useState } from 'react';
 
 type FormDataProps = {
   email: string;
@@ -24,7 +28,7 @@ type FormDataProps = {
 };
 
 const signInSchema = yup.object({
-  email: yup.string().required('Informe o email.').email('E-mail inválido.'),
+  email: yup.string().required('Informe o email.'),
   password: yup
     .string()
     .required('Informe a senha.')
@@ -37,18 +41,37 @@ export function SignIn() {
     handleSubmit,
     formState: { errors }
   } = useForm<FormDataProps>({ resolver: yupResolver(signInSchema) });
-  const { signIn } = useSession();
+  const { signIn, user } = useSession();
+  const toast = useToast();
+  const [isLoading, setIsLoading] = useState(false);
 
-  function handleSignIn({ email, password }: FormDataProps) {
-    console.log({ email, password });
-    signIn(email, password);
+  async function handleSignIn({ email, password }: FormDataProps) {
+    try {
+      setIsLoading(true);
+      await signIn(email, password);
+    } catch (error) {
+      const isAppError = error instanceof AppError;
+      const title = isAppError
+        ? error.message
+        : 'Não foi possível entrar. Tente novamente mais tarde';
+      toast.show({
+        placement: 'top',
+        render: ({ id }) => (
+          <ToastMessage
+            id={id}
+            action="error"
+            title={title}
+            onClose={() => toast.close(id)}
+          />
+        )
+      });
+      setIsLoading(false);
+    }
   }
 
   function handleNewAccount() {
     router.navigate('/sign-up');
   }
-
-  console.log({ errors });
 
   return (
     <KeyboardAvoidingView
@@ -105,7 +128,11 @@ export function SignIn() {
                   />
                 )}
               />
-              <Button title="Acessar" onPress={handleSubmit(handleSignIn)} />
+              <Button
+                title="Acessar"
+                onPress={handleSubmit(handleSignIn)}
+                isLoading={isLoading}
+              />
             </Center>
             <Center flex={1} justifyContent="flex-end" mt="$4">
               <Text color="$gray100" fontSize="$sm" mb="$3" fontFamily="$body">

@@ -1,4 +1,4 @@
-import { AppError } from '@/utils/appError';
+import { AppError } from '@/utils/AppError';
 import axios from 'axios';
 
 export const api = axios.create({
